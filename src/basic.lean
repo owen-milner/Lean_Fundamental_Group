@@ -14,8 +14,8 @@ variables (X : Type u) [topological_space X] (x : X)
 def loop_space := path x x
 
 structure homotopy (p q : loop_space X x) :=
-(to_fun : I × I → X)
-(contin : continuous to_fun)
+(to_fun  : I × I → X)
+(contin  : continuous to_fun)
 (source' : ∀ t, to_fun ⟨0 , t⟩ = x)
 (target' : ∀ t, to_fun ⟨1 , t⟩ = x )
 (left'   : ∀ y, to_fun ⟨y , 0⟩ = p.to_fun y)
@@ -26,28 +26,31 @@ def in_homotopy : loop_space X x → loop_space X x → Prop := λ p q, nonempty
 variables p q r : loop_space X x
 
 def trivial_homotopy : homotopy X x p p := 
-{ to_fun := p.to_fun ∘ prod.fst,
-  contin := continuous.comp (p.continuous') (continuous_fst),
+{ to_fun  := p.to_fun ∘ prod.fst,
+  contin  := continuous.comp (p.continuous') (continuous_fst),
   source' := λ _, p.source',
   target' := λ _, p.target',
-  left' := λ _, rfl,
-  right' := λ _, rfl }
+  left'   := λ _, rfl,
+  right'  := λ _, rfl }
 
 def inverse_homotopy (h : homotopy X x q p) : homotopy X x p q :=
-{ to_fun := h.to_fun ∘ (λ i, ⟨id i.1, σ i.2⟩),
-  contin := continuous.comp (h.contin) (continuous.prod_map (continuous_id) (continuous_symm)),
+{ to_fun  := h.to_fun ∘ (λ i, ⟨id i.1, σ i.2⟩),
+  contin  := continuous.comp (h.contin) (continuous.prod_map (continuous_id) (continuous_symm)),
   source' := λ _, h.source' _,
   target' := λ _, h.target' _,
-  left' := λ _, by simp [h.right'],
-  right' := λ _, by simp [h.left'] }
+  left'   := λ _, by simp [h.right'],
+  right'  := λ _, by simp [h.left'] }
 
 def third_homotopy (h : homotopy X x p r) (g : homotopy X x r q) : homotopy X x p q :=
-{ to_fun := _,
-  contin := _,
+{ to_fun := λi, ite (i.2 ≤ half) 
+                    (h.to_fun ⟨id i.1 , ⟨2 * i.2.val , _⟩⟩) 
+                    (g.to_fun ⟨id i.1 , ⟨(2 * i.2.val) - 1 , _⟩⟩),
+  contin  := continuous.if 
+             (_) _ _,
   source' := _,
   target' := _,
-  left' := _,
-  right' := _ }
+  left'   := _,
+  right'  := _ }
 
 instance : inhabited (homotopy X x p p) := { default := trivial_homotopy X x p }
 
