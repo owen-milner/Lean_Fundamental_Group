@@ -1,5 +1,6 @@
 import tactic
 import topology.basic topology.path_connected
+import data.set
 
 open classical unit_interval path
 open_locale classical unit_interval

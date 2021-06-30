@@ -1,5 +1,6 @@
 import tactic
 import topology.basic topology.path_connected
+import lemmas
 
 open classical unit_interval path
 open_locale classical unit_interval
@@ -41,12 +42,20 @@ def inverse_homotopy (h : homotopy X x q p) : homotopy X x p q :=
   left'   := λ _, by simp [h.right'],
   right'  := λ _, by simp [h.left'] }
 
+def coe_I_Icc02 : ↥I × ↥I → ↥I × ↥(I ∪ (set.Icc (1 : ℝ) 2)) := λ i, ⟨i.1 , ⟨i.2 , or.inl i.2.2⟩⟩
+
+instance : has_coe (↥I × ↥I) (↥I × ↥(I ∪ (set.Icc (1 : ℝ) 2))) := { coe := coe_I_Icc02 }
+
+def sum_fun : I × I → (I × I) ⊕ (I × set.Icc (1 : ℝ) 2) := sorry
+
+-- λ y, ((λ (i : (I × I) ⊕ (I × set.Icc (1 : ℝ) 2)), @sum.rec (I × I) (I × set.Icc (1 : ℝ) 2) (λ _, X) h.to_fun (λ i, g.to_fun ⟨id i.1 , (Icc_homeo_I _ _ _).to_equiv.to_fun i.2⟩)) (sum_fun y))
+
+def sum_funb (h : homotopy X x p r) (g : homotopy X x r q) : ((I × I) ⊕ (I × set.Icc (1 : ℝ) 2)) → X :=
+@sum.rec (I × I) (I × set.Icc (1 : ℝ) 2) (λ _, X) h.to_fun (λ ⟨i , j⟩, g.to_fun ⟨i , (Icc_homeo_I (1 : ℝ) 2 (by linarith)).to_equiv.to_fun j⟩)
+
 def third_homotopy (h : homotopy X x p r) (g : homotopy X x r q) : homotopy X x p q :=
-{ to_fun := λi, ite (i.2 ≤ half) 
-                    (h.to_fun ⟨id i.1 , ⟨2 * i.2.val , _⟩⟩) 
-                    (g.to_fun ⟨id i.1 , ⟨(2 * i.2.val) - 1 , _⟩⟩),
-  contin  := continuous.if 
-             (_) _ _,
+{ to_fun  := (sum_funb X x p q r h g) ∘ sum_fun,
+  contin  := _,
   source' := _,
   target' := _,
   left'   := _,
