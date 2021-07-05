@@ -46,12 +46,17 @@ def coe_I_Icc02 : ↥I × ↥I → ↥I × ↥(I ∪ (set.Icc (1 : ℝ) 2)) := �
 
 instance : has_coe (↥I × ↥I) (↥I × ↥(I ∪ (set.Icc (1 : ℝ) 2))) := { coe := coe_I_Icc02 }
 
-def sum_fun : I × I → (I × I) ⊕ (I × set.Icc (1 : ℝ) 2) := sorry
+def sum_fun : I × I → (I × I) ⊕ (I × set.Icc (1 : ℝ) 2) := (λ i, dite (prod.snd i ≤ (1 : set.Icc (0 : ℝ) 2)) (λ h', sum.inl ⟨i.1 , ⟨i.2 , and.intro i.2.2.1 h'⟩⟩) 
+                                                                                                             (λ h', sum.inr ⟨i.1 , ⟨i.2 , and.intro (le_of_not_ge (λ hi, h' (ge_iff_le.2 hi))) i.2.2.2⟩⟩)) 
+                                                            ∘ (λ ⟨i , j⟩, (⟨id i , (Icc_homeo_I (0 : ℝ) 2 (by simp)).to_equiv.inv_fun j⟩ : I × set.Icc (0 : ℝ) 2))
 
 -- λ y, ((λ (i : (I × I) ⊕ (I × set.Icc (1 : ℝ) 2)), @sum.rec (I × I) (I × set.Icc (1 : ℝ) 2) (λ _, X) h.to_fun (λ i, g.to_fun ⟨id i.1 , (Icc_homeo_I _ _ _).to_equiv.to_fun i.2⟩)) (sum_fun y))
 
 def sum_funb (h : homotopy X x p r) (g : homotopy X x r q) : ((I × I) ⊕ (I × set.Icc (1 : ℝ) 2)) → X :=
-@sum.rec (I × I) (I × set.Icc (1 : ℝ) 2) (λ _, X) h.to_fun (λ ⟨i , j⟩, g.to_fun ⟨i , (Icc_homeo_I (1 : ℝ) 2 (by linarith)).to_equiv.to_fun j⟩)
+@sum.rec (I × I) (I × set.Icc (1 : ℝ) 2) (λ _, X) h.to_fun (g.to_fun ∘ (λ (ii : I × set.Icc (1 : ℝ) 2), ⟨prod.fst ii , ((Icc_homeo_I (1 : ℝ) 2 (by linarith)).to_equiv.to_fun ∘ prod.snd) ii⟩))
+
+lemma sum_funb_continuous (h : homotopy X x p r) (g : homotopy X x r q) : continuous (sum_funb X x p q r h g) :=
+continuous_sum_rec h.contin (continuous.comp (g.contin) (continuous.prod_map continuous_id (Icc_homeo_I (1 : ℝ) 2 (by linarith)).continuous_to_fun))
 
 def third_homotopy (h : homotopy X x p r) (g : homotopy X x r q) : homotopy X x p q :=
 { to_fun  := (sum_funb X x p q r h g) ∘ sum_fun,
@@ -74,7 +79,7 @@ def in_hom_symm  : symmetric (in_homotopy X x) := λ p q, assume h' : in_homotop
 
 def in_hom_trans : transitive (in_homotopy X x) := _
 
-def loop_space_up_to_homotopy : setoid (loop_space X x) :=
+def loop_space_setoid : setoid (loop_space X x) :=
 { r     := in_homotopy X x,
   iseqv := and.intro (in_hom_reflx X x) 
            (and.intro (in_hom_symm X x) _) }
