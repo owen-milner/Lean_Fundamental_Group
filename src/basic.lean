@@ -289,13 +289,113 @@ def third_homotopy (h : homotopy X x p r) (g : homotopy X x r q) : homotopy X x 
     rw third_fun1_eq,
     simp,
     exact hom.source' _,
-    
+    split,
+    apply (zero_le_mul_left _).2,
+    exact t.2.1,
+    linarith,
+    conv_rhs { rw ← (mul_one (2 : ℝ)) },
+    apply mul_le_mul,
+    linarith,
+    exact t.2.2,
+    exact t.2.1,
+    linarith,
+    split,
+    apply (zero_le_mul_left _).2,
+    exact t.2.1,
+    linarith,
+    conv_rhs { rw ← (mul_one (2 : ℝ)) },
+    apply mul_le_mul,
+    linarith,
+    exact t.2.2,
+    exact t.2.1,
+    linarith,
+    rw third_fun,
+    simp [h],
+    rw third_fun2_eq,
+    simp,
+    exact g.source' _,
   end,
-  target' := _,
-  left'   := _,
-  right'  := _ }
+  target' := λ t,
+  begin
+    have H'' : (2 * ↑t : ℝ) ∈ set.Icc (0 : ℝ) 2,
+    split,
+    apply (zero_le_mul_left _).2,
+    exact t.2.1,
+    linarith,
+    conv_rhs { rw ← (mul_one (2 : ℝ)) },
+    apply mul_le_mul,
+    linarith,
+    exact t.2.2,
+    exact t.2.1,
+    linarith,
+    rename h hom,
+    simp,
+    have H := Icc_homeo_I_symm_apply_coe (0 : ℝ) 2 (by linarith) t,
+    rw sub_zero at H,
+    rw add_zero at H,
+    have H' : (((Icc_homeo_I (0 : ℝ) 2 (by linarith)).symm t) : set.Icc (0 : ℝ) 2) = ⟨2 * t , H''⟩,
+    ext,
+    exact H,
+    rw H',
+    by_cases ((⟨1 , ⟨2 * t , H''⟩⟩ : ↥I × ↥(set.Icc (0 : ℝ) 2)).2 ≤ 1),
+    rw third_fun,
+    simp [h],
+    rw third_fun1_eq,
+    simp,
+    exact hom.target' _,
+    rw third_fun,
+    simp [h],
+    rw third_fun2_eq,
+    simp,
+    exact g.target' _,
+  end,
+  left'   := λ y,
+  begin
+    simp,
+    have H := Icc_homeo_I_symm_apply_coe (0 : ℝ) 2 (by linarith) 0,
+    rw sub_zero at H,
+    rw add_zero at H,
+    simp only [mul_zero, unit_interval.coe_zero] at H,
+    have H' : (((Icc_homeo_I (0 : ℝ) 2 (by linarith)).symm 0) : set.Icc (0 : ℝ) 2) = 0,
+    ext,
+    exact H,
+    rw H',
+    have H'' : (0 : set.Icc (0 : ℝ) 2) ≤ 1, 
+    apply subtype.mk_le_mk.2,
+    linarith,
+    rw third_fun,
+    simp [H''],
+    rw third_fun1_eq,
+    simp,
+    exact h.left' _,
+  end,
+  right'  := λ y,
+  begin
+    simp,
+    have H := Icc_homeo_I_symm_apply_coe (0 : ℝ) 2 (by linarith) 1,
+    rw sub_zero at H,
+    rw add_zero at H,
+    simp only [mul_one, unit_interval.coe_one] at H,
+    have H' : (((Icc_homeo_I (0 : ℝ) 2 (by linarith)).symm 1) : set.Icc (0 : ℝ) 2) = two,
+    ext,
+    exact H,
+    rw H',
+    have H'' : ¬ (two : set.Icc (0 : ℝ) 2) ≤ 1,
+    intro Ha,
+    have Ha' := subtype.mk_le_mk.1 Ha,
+    linarith,
+    rw third_fun,
+    simp [H''],
+    rw third_fun2_eq,
+    simp,
+    rw two_sub_one,
+    exact g.right' _,
+  end }
 
 instance : inhabited (homotopy X x p p) := { default := trivial_homotopy X x p }
+
+instance third_inhabited (h : inhabited (homotopy X x p r)) (g : inhabited (homotopy X x r q)) : inhabited (homotopy X x p q) :=
+{ default := third_homotopy X x p q r h.default g.default }
 
 instance inhabited_if_opp_inhabited (h : inhabited (homotopy X x q p)) : inhabited (homotopy X x p q) :=
 { default := inverse_homotopy X x p q h.default }
@@ -306,11 +406,16 @@ def in_hom_symm  : symmetric (in_homotopy X x) := λ p q, assume h' : in_homotop
                                                          have h : inhabited (homotopy X x p q) := inhabited_of_nonempty h',
                                                          @nonempty_of_inhabited (homotopy X x q p) (based.inhabited_if_opp_inhabited X x q p h)
 
-def in_hom_trans : transitive (in_homotopy X x) := _
+def in_hom_trans : transitive (in_homotopy X x) := λ p r q h' g', 
+                                                     have h : inhabited (homotopy X x p r) := inhabited_of_nonempty h',
+                                                     have g : inhabited (homotopy X x r q) := inhabited_of_nonempty g',
+                                                     @nonempty_of_inhabited (homotopy X x p q) (based.third_inhabited X x p q r h g)
 
 def loop_space_setoid : setoid (loop_space X x) :=
 { r     := in_homotopy X x,
   iseqv := and.intro (in_hom_reflx X x) 
-           (and.intro (in_hom_symm X x) _) }
+           (and.intro (in_hom_symm X x) (in_hom_trans X x)) }
+
+def Fundamental_Group := quotient (loop_space_setoid X x)
 
 end based

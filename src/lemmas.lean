@@ -420,3 +420,27 @@ lemma front_single (x : ↥I × ↥(set.Icc (0 : ℝ) 2)) : x ∈ frontier {a : 
 frontier_le_subset_eq (continuous_snd) (by continuity) hx
 
 lemma coe_pi_fun_eq {α : Type u} {β : Type v} {p : α → Prop} {f : Π (a : α), p a → β} {x : α} {hx : p x} : (f : {a | p a} → β) ⟨x , hx⟩ = f x hx := rfl
+
+instance : has_zero ↥(set.Icc (0 : ℝ) 2) := { zero := ⟨0 , by simp⟩ }
+
+@[simp, norm_cast] lemma coe_zero : ((0 : set.Icc (0 : ℝ) 2) : ℝ) = 0 := rfl
+
+@[simp] lemma mk_zero (h : (0 : ℝ) ∈ set.Icc (0 : ℝ) 2) : (⟨0 , h⟩ : set.Icc (0 : ℝ) 2) = 0 := rfl 
+
+def two : ↥(set.Icc (0 : ℝ) 2) := ⟨2 , by simp⟩
+
+@[simp, norm_cast] lemma coe_two : ((two : set.Icc (0 : ℝ) 2) : ℝ) = 2 := rfl
+
+@[simp] lemma mk_two (h : (2 : ℝ) ∈ set.Icc (0 : ℝ) 2) : (⟨2 , h⟩ : set.Icc (0 : ℝ) 2) = two := rfl 
+
+lemma real_arith : (2 : ℝ) - 1 = 1 :=
+begin
+  linarith,
+end
+
+lemma two_sub_one (h : (2 : ℝ) - 1 ∈ I ) : (⟨2 - 1 , h⟩ : I) = 1 :=
+begin
+  ext,
+  simp,
+  exact real_arith,
+end
