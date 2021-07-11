@@ -14,12 +14,12 @@ instance : has_one ↥(set.Icc (0 : ℝ) 2) := { one := ⟨1 , and.intro (by sim
 
 @[simp] lemma mk_one (h : (1 : ℝ) ∈ set.Icc (0 : ℝ) 2) : (⟨1 , h⟩ : set.Icc (0 : ℝ) 2) = 1 := rfl 
 
-def coe_Pi_fun (α β : Type u) (p : α → Prop) (f : Π (a : α), p a → β) : {a : α | p a} → β := λ a, f a a.2
+def coe_Pi_fun (α : Type u) (β : Type v) (p : α → Prop) (f : Π (a : α), p a → β) : {a : α | p a} → β := λ a, f a a.2
 
-instance (α β : Type u) (p : α → Prop) : has_coe (Π (a : α), p a → β) ({a | p a} → β) := { coe := λ f, coe_Pi_fun α β p f }
+instance (α : Type u) (β : Type v) (p : α → Prop) : has_coe (Π (a : α), p a → β) ({a | p a} → β) := { coe := λ f, coe_Pi_fun α β p f }
 
-@[simp, norm_cast] lemma coe_pi_fun {α β : Type u} {p : α → Prop} {f : Π (a : α), p a → β} : (f : {a | p a} → β) = coe_Pi_fun α β p f := rfl
-
+@[simp, norm_cast] lemma coe_pi_fun {α : Type u} {β : Type v} {p : α → Prop} {f : Π (a : α), p a → β} : (f : {a | p a} → β) = coe_Pi_fun α β p f := rfl
+ 
 instance coe_sub (α : Type u) (s : set α) : has_coe {x // x ∈ s} s := { coe := λ ⟨a , h⟩, ⟨a , h⟩ }
 
 instance mem_sub {α : Type u} {s : set α} : has_mem {x // x ∈ s} (set ↥s) := { mem := λ ⟨a , h⟩ U, (⟨a , h⟩ : s) ∈ U }
@@ -188,7 +188,7 @@ def intersection_filter (α : Type u) (s : set α) (𝓕 : filter α) : filter s
 
 instance (α : Type u) (s : set α) : has_coe (filter α) (filter s) := { coe := intersection_filter α s }
 
-variables (α β : Type u) (p : α → Prop) [topological_space α] [topological_space β]
+variables (α : Type u) (β : Type v) (p : α → Prop) [topological_space α] [topological_space β]
 
 def interior_set (s : set α) : set s := {e | (e : α) ∈ interior s}
 
@@ -413,4 +413,10 @@ begin
   specialize HU2 Ha,
   simp [h],
   use HU2,
-end)
+end).
+
+lemma front_single (x : ↥I × ↥(set.Icc (0 : ℝ) 2)) : x ∈ frontier {a : ↥I × ↥(set.Icc (0 : ℝ) 2) | a.snd ≤ 1} → x.snd = 1 := 
+λ hx, 
+frontier_le_subset_eq (continuous_snd) (by continuity) hx
+
+lemma coe_pi_fun_eq {α : Type u} {β : Type v} {p : α → Prop} {f : Π (a : α), p a → β} {x : α} {hx : p x} : (f : {a | p a} → β) ⟨x , hx⟩ = f x hx := rfl
